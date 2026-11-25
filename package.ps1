@@ -14,7 +14,17 @@ try {
     } | ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination $Dist -Recurse -Force }
     if (-not (Test-Path -LiteralPath (Join-Path $Dist 'zundamon-voicevox-app.exe'))) { throw 'Executable missing in package' }
     if (-not (Get-ChildItem -LiteralPath $Dist -Filter '*.dll' -File)) { throw 'No staged runtime DLLs found' }
-    foreach ($name in @('USER_GUIDE.md', 'README.md', 'FIRST_RUN_TESTS.md', 'setup-assets.ps1')) {
+    # Bundle only the official downloader executable, not any downloaded assets.
+    $Downloader = Join-Path $Dist 'download.exe'
+    Invoke-WebRequest -Uri 'https://github.com/VOICEVOX/voicevox_core/releases/download/0.17.1/download-windows-x64.exe' -OutFile $Downloader
+    $stream = [System.IO.File]::OpenRead($Downloader)
+    try {
+        if ($stream.ReadByte() -ne 0x4D -or $stream.ReadByte() -ne 0x5A) { throw 'Downloader is not a Windows executable' }
+    } finally { $stream.Dispose() }
+    if ((Test-Path (Join-Path $Dist 'voicevox_core')) -or @(Get-ChildItem -LiteralPath $Dist -Recurse -File -Filter '*.vvm').Count -gt 0) {
+        throw 'Voice models or downloaded assets must not be distributed'
+    }
+    foreach ($name in @('USER_GUIDE.md', 'README.md', 'FIRST_RUN_TESTS.md', 'setup-assets.ps1', 'setup-assets.cmd', 'VOICEVOX-DOWNLOADER-LICENSE.txt')) {
         Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination $Dist
     }
     $hashes = Get-ChildItem -LiteralPath $Dist -Recurse -File | Sort-Object FullName | ForEach-Object {
