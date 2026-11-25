@@ -2,7 +2,7 @@
 
 Windows Reactor 0.100.0 (WinUI 3)、VOICEVOX Core 0.17.1、rodio 0.20 を使用。元の ViewModel / Effect 構成を維持しています。テキスト入力、キャラクター・読み上げスタイル選択、速度変更、音声再生、WAV 保存に対応する設計です。
 
-現時点では Windows 上での実ビルド・実行は未確認です。CI の結果は [Actions](https://github.com/zhuolabs/zundamon-voicevox-app/actions) から確認してください。
+Windows のデバッグビルドおよび単体テスト6件は CI #4 で成功しました。GUI の実機動作は未確認です。CI の結果は [Actions](https://github.com/zhuolabs/zundamon-voicevox-app/actions) から確認してください。
 
 ## Windows x64 での検証
 
@@ -16,7 +16,11 @@ powershell -ExecutionPolicy Bypass -File .\verify.ps1 -Launch
 
 ビルド、単体テスト、公式アセットの取得、実音声合成・WAV デコードと保存のテストを順に実行します。-Launch 指定時は最後に GUI を起動します。ビルドと単体テストのみなら -SkipAssets を指定してください。
 
-GitHub Actions は push / pull request / 手動実行で Windows x64 ビルドと検証、配布アーティファクト生成を実施します。成功した run の Artifacts にある zundamon-voicevox-app-windows-x64 が配布物です。初回 CI で生成した Cargo.lock は cargo-lock アーティファクトから取得して固定できます。
+GitHub Actions は push / pull request / 手動実行で Windows x64 ビルド、単体テスト、配布アーティファクト生成を実施します。実モデルの音声合成テストは配布アーティファクト生成後に、利用規約への同意を明示した場合のみ実施します。
+
+VOICEVOX 音声モデルと ONNX Runtime の利用規約を確認して同意した場合は、リポジトリの Settings → Secrets and variables → Actions → Variables で `VOICEVOX_TERMS_ACCEPTED` を `true` にするか、Actions の手動実行で `accept_voicevox_terms` を有効にしてください。規約: https://github.com/VOICEVOX/voicevox_vvm/releases/tag/0.17.0 および https://github.com/VOICEVOX/onnxruntime/releases 。CI は同意入力を標準入力へ渡します。
+
+run の Artifacts にある zundamon-voicevox-app-windows-x64 が配布物です。初回 CI で生成した Cargo.lock は cargo-lock アーティファクトから取得して固定できます。
 
 ## アセット配置
 

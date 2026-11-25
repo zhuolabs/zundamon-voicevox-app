@@ -16,6 +16,8 @@ powershell -ExecutionPolicy Bypass -File .\setup-assets.ps1
 
 VOICEVOX Core 0.17.1 の公式ダウンローダーから音声モデル、OpenJTalk 辞書、ONNX Runtime を取得します。インターネット接続と十分な空き容量が必要です。入手元: https://github.com/VOICEVOX/voicevox_core/releases/tag/0.17.1
 
+ダウンローダーに表示される音声モデルと ONNX Runtime の利用規約を読み、同意できる場合だけ y を入力してください。
+
 アセットは EXE の隣の voicevox_core フォルダに保存されます。破損等で再取得する場合は同じコマンドに -Force を付けます。
 
 ## 3. 起動と使い方
@@ -33,4 +35,4 @@ zundamon-voicevox-app.exe を起動し、モデル読み込みが完了するま
 
 音声の利用には各キャラクター・モデルの規約が適用されます。必要なクレジット（例: VOICEVOX:ずんだもん）を表示してください。VOICEVOX の公式サイト: https://voicevox.hiroshiba.jp/
 
-CI はコンパイル、単体テスト、実モデルでの WAV 合成・デコード・保存、release EXE の生成を検証する構成です。GUI 操作および実際のスピーカー出力は FIRST_RUN_TESTS.md に沿って実機で確認してください。CI が成功するまでは動作確認済みの配布物ではありません。
+CI はコンパイル、単体テスト、release EXE の生成を検証します。実モデルによる WAV 合成・デコード・保存は、利用規約への同意が明示された場合のみ実施します。GUI 操作および実際のスピーカー出力は FIRST_RUN_TESTS.md に沿って実機で確認してください。CI が成功するまでは動作確認済みの配布物ではありません。

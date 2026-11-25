@@ -235,7 +235,11 @@ mod tests {
         }
         assert!(lengths[0] > lengths[1], "速度 0.8 の方が長くなるはず");
         let wav = engine.synthesize(text, style.id, 1.0)?;
-        let path = save_wav(&wav)?;
+        // Use a stable path independent of the Windows Reactor test runner's exe path.
+        let output = Path::new(env!("CARGO_MANIFEST_DIR")).join("smoke-output");
+        std::fs::create_dir_all(&output)?;
+        let path = save_wav_in(&output, &wav)?;
+        std::fs::write(output.join("CREDITS.txt"), "VOICEVOX:ずんだもん\n")?;
         println!("smoke WAV: {}", path.display());
         Ok(())
     }

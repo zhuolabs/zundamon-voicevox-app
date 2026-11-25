@@ -4,6 +4,11 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      accept_voicevox_terms:
+        description: 'I have read and accept the VOICEVOX model and ONNX Runtime terms for the synthesis test'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -31,9 +36,9 @@ jobs:
         run: |
           cargo generate-lockfile
           if ($LASTEXITCODE -ne 0) { throw 'Dependency resolution failed' }
-      - name: Debug build, unit tests and real synthesis
+      - name: Debug build and unit tests
         shell: pwsh
-        run: .\verify.ps1
+        run: .\verify.ps1 -SkipAssets
       - name: Release build
         shell: pwsh
         run: |
@@ -49,11 +54,24 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 30
+      # Do not silently accept third-party terms on behalf of repository users.
+      - name: Download assets and run real synthesis test
+        if: ${{ vars.VOICEVOX_TERMS_ACCEPTED == 'true' || inputs.accept_voicevox_terms == true }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          .\setup-assets.ps1 -AcceptTerms -SmokeTest
+          $env:VOICEVOX_ASSET_DIR = Join-Path $PWD 'voicevox_core'
+          $env:PATH = (Join-Path $PWD 'target/x86_64-pc-windows-msvc/debug') + ';' + $env:PATH
+          cargo test --locked --target x86_64-pc-windows-msvc voicevox_smoke -- --ignored --nocapture
+          if ($LASTEXITCODE -ne 0) { throw 'VOICEVOX smoke test failed' }
       - name: Upload synthesis test WAV
+        if: ${{ vars.VOICEVOX_TERMS_ACCEPTED == 'true' || inputs.accept_voicevox_terms == true }}
         uses: actions/upload-artifact@v4
         with:
           name: smoke-wav
-          path: target/x86_64-pc-windows-msvc/debug/deps/output/*.wav
+          path: smoke-output/
           if-no-files-found: error
           retention-days: 30
       - name: Upload resolved dependency lockfile
