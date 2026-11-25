@@ -1,0 +1,58 @@
+name: Windows build and verification
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-x64:
+    runs-on: windows-2025
+    timeout-minutes: 90
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_NET_GIT_FETCH_WITH_CLI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust toolchain
+        shell: pwsh
+        run: |
+          rustup update stable
+          if ($LASTEXITCODE -ne 0) { throw 'rustup update failed' }
+          rustup default stable-x86_64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { throw 'rustup default failed' }
+          rustup target add x86_64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { throw 'rustup target failed' }
+          rustc -Vv
+          cargo -V
+      - name: Debug build, unit tests and real synthesis
+        shell: pwsh
+        run: .\verify.ps1
+      - name: Release build
+        shell: pwsh
+        run: |
+          cargo build --release --locked --target x86_64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { throw 'Release build failed' }
+      - name: Package executable and runtime
+        shell: pwsh
+        run: .\package.ps1
+      - name: Upload Windows x64 application
+        uses: actions/upload-artifact@v4
+        with:
+          name: zundamon-voicevox-app-windows-x64
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload synthesis test WAV
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-wav
+          path: target/x86_64-pc-windows-msvc/debug/deps/output/*.wav
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload resolved dependency lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: cargo-lock
+          path: Cargo.lock
+          if-no-files-found: error

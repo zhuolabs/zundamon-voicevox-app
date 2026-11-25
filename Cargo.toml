@@ -1,0 +1,17 @@
+[package]
+name = "zundamon-voicevox-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+windows-reactor = "=0.100.0"
+voicevox_core = { git = "https://github.com/VOICEVOX/voicevox_core", tag = "0.17.1", features = ["load-onnxruntime"] }
+typed-floats = "1"
+rodio = "0.20"
+anyhow = "1"
+
+[build-dependencies]
+windows-reactor-setup = "=0.100.0"
+
+[dev-dependencies]
+tempfile = "3"
