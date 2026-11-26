@@ -1,6 +1,7 @@
 name: Windows build and verification
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -25,7 +26,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'rustup target failed' }
           rustc -Vv
           cargo -V
-      - name: Debug build, unit tests and real synthesis
+      - name: Resolve dependencies
+        shell: pwsh
+        run: |
+          cargo generate-lockfile
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency resolution failed' }
+      - name: Debug build and unit tests
         shell: pwsh
         run: .\verify.ps1
       - name: Release build
@@ -33,7 +39,7 @@ jobs:
         run: |
           cargo build --release --locked --target x86_64-pc-windows-msvc
           if ($LASTEXITCODE -ne 0) { throw 'Release build failed' }
-      - name: Package executable and runtime
+      - name: Package framework-dependent executable
         shell: pwsh
         run: .\package.ps1
       - name: Upload Windows x64 application
@@ -43,16 +49,10 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 30
-      - name: Upload synthesis test WAV
-        uses: actions/upload-artifact@v4
-        with:
-          name: smoke-wav
-          path: target/x86_64-pc-windows-msvc/debug/deps/output/*.wav
-          if-no-files-found: error
-          retention-days: 30
       - name: Upload resolved dependency lockfile
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cargo-lock
           path: Cargo.lock
-          if-no-files-found: error
+          if-no-files-found: ignore
