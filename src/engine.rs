@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use anyhow::{Context as _, anyhow};
 use typed_floats::tf32::PositiveFinite;
 use voicevox_core::blocking::{Onnxruntime, OpenJtalk, Synthesizer, VoiceModelFile};
-use voicevox_core::{StyleId, StyleType};
+use voicevox_core::{AccelerationMode, StyleId, StyleType};
 
 #[derive(Clone, Debug)]
 pub struct StyleInfo {
@@ -73,8 +73,9 @@ impl SynthEngine {
 
         let synth = Synthesizer::builder(ort)
             .text_analyzer(open_jtalk)
+            .acceleration_mode(AccelerationMode::Gpu)
             .build()
-            .context("Synthesizer の構築に失敗")?;
+            .context("GPU 初期化に失敗: DirectML、対応GPU、グラフィックスドライバーを確認してください")?;
 
         let models_dir = base.join("models");
         let vvm_files = find_vvm_files(&models_dir)?;

@@ -13,3 +13,5 @@ CI #5: デバッグ・リリースビルド、単体テスト6件、配布物生
 CI #8: ComboBox とコンパクトなウィンドウの修正版でデバッグ・リリースビルド、単体テスト、配布物生成成功。
 
 Framework-dependent 方式へ変更: windows-reactor-setup と build.rs を削除。配布ファイルを明示し、Windows App Runtime の DLL や言語フォルダを同梱しない。利用者向けランタイム導入スクリプトは設けず、README に公式入手先を記載。新構成のビルドと実機起動は未確認。
+
+モデル取得用の setup-assets.cmd / setup-assets.ps1 を削除し、公式ダウンローダー本体は従来の要件に沿って同梱。README に DirectML 版の手動取得と配置の手順を集約。エンジンは GPU モードを明示。実 GPU での音声合成は未確認。

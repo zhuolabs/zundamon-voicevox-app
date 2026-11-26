@@ -20,10 +20,10 @@ try {
     if ((Test-Path (Join-Path $Dist 'voicevox_core')) -or @(Get-ChildItem -LiteralPath $Dist -Recurse -File -Filter '*.vvm').Count -gt 0) {
         throw 'Voice models or downloaded assets must not be distributed'
     }
-    foreach ($name in @('USER_GUIDE.md', 'README.md', 'FIRST_RUN_TESTS.md', 'setup-assets.ps1', 'setup-assets.cmd', 'VOICEVOX-DOWNLOADER-LICENSE.txt')) {
+    foreach ($name in @('USER_GUIDE.md', 'README.md', 'FIRST_RUN_TESTS.md', 'VOICEVOX-DOWNLOADER-LICENSE.txt')) {
         Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination $Dist
     }
-    $expected = @('zundamon-voicevox-app.exe', 'download.exe', 'USER_GUIDE.md', 'README.md', 'FIRST_RUN_TESTS.md', 'setup-assets.ps1', 'setup-assets.cmd', 'VOICEVOX-DOWNLOADER-LICENSE.txt')
+    $expected = @('zundamon-voicevox-app.exe', 'download.exe', 'USER_GUIDE.md', 'README.md', 'FIRST_RUN_TESTS.md', 'VOICEVOX-DOWNLOADER-LICENSE.txt')
     $actual = @(Get-ChildItem -LiteralPath $Dist -Force)
     if ($actual.Count -ne $expected.Count -or @($actual | Where-Object { $_.PSIsContainer -or $_.Name -notin $expected }).Count -gt 0) {
         throw 'Unexpected files in framework-dependent package'

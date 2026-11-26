@@ -8,17 +8,7 @@ Windows 11 x64 を推奨します。Rust や Visual Studio はアプリ利用時
 
 ## 2. モデルなどの取得（初回のみ）
 
-展開したフォルダで **setup-assets.cmd をダブルクリック**してください。PowerShell から実行する場合は以下でも可能です。
-
-~~~powershell
-powershell -ExecutionPolicy Bypass -File .\setup-assets.ps1
-~~~
-
-同梱の VOICEVOX Core 0.17.1 公式ダウンローダー download.exe を実行し、読み上げ用音声モデル、OpenJTalk 辞書、ONNX Runtime を取得します。インターネット接続と十分な空き容量が必要です。入手元: https://github.com/VOICEVOX/voicevox_core/releases/tag/0.17.1
-
-ダウンローダーに表示される音声モデルと ONNX Runtime の利用規約を読み、同意できる場合だけ y を入力してください。
-
-アセットは EXE の隣の voicevox_core フォルダに保存されます。破損等で再取得する場合はPowerShell のコマンドに -Force を付けます。直接ダウンローダーを実行する場合は、展開先で ` .\download.exe -o voicevox_core --exclude c-api --devices cpu --models-pattern '[0-9]*.vvm' ` を実行してください。
+[README.md の「初回セットアップ（DirectML版）」](README.md) を参照し、公式ダウンローダーで音声モデル・Open JTalk 辞書・ONNX Runtime・DirectML を取得してください。利用規約への同意は利用者が行います。DirectX 12 対応 GPU が必要です。モデル取得スクリプトは同梱しません。
 
 ## 3. 起動と使い方
 
@@ -26,8 +16,9 @@ zundamon-voicevox-app.exe を起動し、モデル読み込みが完了するま
 
 ## 4. トラブルシュート
 
-- モデルが見つからない: voicevox_core が EXE の隣にあることを確認し、セットアップを再実行してください。
+- モデルが見つからない: voicevox_core が EXE の隣にあることを確認し、README の初回セットアップ手順を再確認してください。
 - 起動できない、DLL が見つからない: x64 Windows を使用していることを確認し、README.md に記載の Microsoft 公式ランタイム入手方法を参照してください。
+- GPU 初期化失敗: DirectX 12 対応 GPU、最新のグラフィックスドライバー、DirectML.dll の配置を確認してください。
 - 音が出ない: Windows の出力デバイスと音量を確認してください。WAV 保存も試してください。
 - 不具合報告: Actions の実行 URL、Windows バージョン、表示されたエラー、操作手順を添えてください。
 
