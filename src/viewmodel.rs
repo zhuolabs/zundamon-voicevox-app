@@ -54,13 +54,6 @@ impl ViewModel {
             .unwrap_or(&[])
     }
 
-    pub fn selected_style_name(&self) -> &str {
-        self.current_styles().iter()
-            .find(|s| s.id == self.selected_style)
-            .map(|s| s.name.as_str())
-            .unwrap_or("（なし）")
-    }
-
     pub fn can_speak(&self) -> bool {
         self.ready() && !self.busy && !self.text.trim().is_empty()
     }
@@ -118,6 +111,9 @@ impl ViewModel {
     }
 
     pub fn on_character_selected(&mut self, name: &str) {
+        if self.selected_character == name {
+            return;
+        }
         if let Some(character) = self.characters.iter().find(|c| c.name == name) {
             self.selected_character = character.name.clone();
             self.selected_style = default_style_id(&character.styles);
@@ -215,6 +211,9 @@ mod tests {
         vm.on_style_selected(999);
         assert_eq!(vm.selected_style, 3);
         vm.on_style_selected(1);
+        assert_eq!(vm.selected_style, 1);
+        // A repeated selection notification must not reset the user's style.
+        vm.on_character_selected("ずんだもん");
         assert_eq!(vm.selected_style, 1);
     }
 

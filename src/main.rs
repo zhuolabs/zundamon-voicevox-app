@@ -14,8 +14,8 @@ enum Message {
     EngineReady(Arc<SynthEngine>),
     EngineFailed(String),
     TextChanged(String),
-    CharacterSelected(String),
-    StyleSelected(u32),
+    CharacterSelected(Option<String>),
+    StyleSelected(Option<u32>),
     SpeedChanged(Option<f64>),
     Speak,
     SpeakDone(Vec<u8>),
@@ -76,8 +76,9 @@ impl Component for VoiceApp {
             Message::EngineReady(engine) => self.vm.on_engine_ready(engine),
             Message::EngineFailed(err) => self.vm.on_engine_failed(err),
             Message::TextChanged(text) => self.vm.on_text_changed(text),
-            Message::CharacterSelected(name) => self.vm.on_character_selected(&name),
-            Message::StyleSelected(id) => self.vm.on_style_selected(id),
+            Message::CharacterSelected(Some(name)) => self.vm.on_character_selected(&name),
+            Message::StyleSelected(Some(id)) => self.vm.on_style_selected(id),
+            Message::CharacterSelected(None) | Message::StyleSelected(None) => {},
             Message::SpeedChanged(value) => self.vm.on_speed_changed(value),
             Message::Speak => {
                 if let Some(effect) = self.vm.on_speak() {
@@ -99,28 +100,21 @@ impl Component for VoiceApp {
 
     fn view(&self, _input: &(), context: &mut ViewContext<Self>) -> View {
         context.window_title("VOICEVOX 音声合成");
+        context.window_visuals(WindowVisuals::new().client_size(480.0, 420.0));
         let vm = &self.vm;
         let interactive = vm.ready() && !vm.busy;
-        let character_buttons: Vec<_> = vm.characters.iter().map(|character| {
-            let name = character.name.clone();
-            KeyedView::new(
-                format!("character-{name}"),
-                Button::new()
-                    .is_enabled(interactive && vm.selected_character != name)
-                    .on_click(context.message(Message::CharacterSelected(name.clone())))
-                    .content(name),
-            )
-        }).collect();
-        let style_buttons: Vec<_> = vm.current_styles().iter().map(|style| {
-            let id = style.id;
-            KeyedView::new(
-                format!("style-{id}"),
-                Button::new()
-                    .is_enabled(interactive && vm.selected_style != id)
-                    .on_click(context.message(Message::StyleSelected(id)))
-                    .content(style.name.clone()),
-            )
-        }).collect();
+        let character_names: Vec<String> = vm.characters.iter()
+            .map(|character| character.name.clone()).collect();
+        let character_index = character_names.iter()
+            .position(|name| name == &vm.selected_character);
+        let style_names: Vec<String> = vm.current_styles().iter()
+            .map(|style| style.name.clone()).collect();
+        let style_ids: Vec<u32> = vm.current_styles().iter()
+            .map(|style| style.id).collect();
+        let style_index = style_ids.iter().position(|id| *id == vm.selected_style);
+        // The callbacks map the index in the rendered list to its stable domain value.
+        // Ignore the temporary None notification when a ComboBox list is replaced.
+        let character_values = character_names.clone();
         let content = Border::new()
             .padding(Thickness::uniform(16.0))
             .content(
@@ -135,23 +129,32 @@ impl Component for VoiceApp {
                             .placeholder_text("ここに入力した文字を読み上げます")
                             .accepts_return(true)
                             .text_wrapping(TextWrapping::Wrap)
-                            .height(120.0)
+                            .font_size(14.0)
+                            .height(94.0)
                             .is_enabled(interactive)
                             .on_text_changed(context.callback(|value: String| {
                                 Message::TextChanged(value)
                             })),
-                        TextBlock::new()
-                            .text(format!("キャラクター: {}", vm.selected_character)),
-                        ScrollViewer::new()
-                            .height(160.0)
-                            .vertical_scroll_bar_visibility(ScrollBarVisibility::Auto)
-                            .content(StackPanel::new().spacing(4.0).keyed_children(character_buttons)),
-                        TextBlock::new()
-                            .text(format!("スタイル: {}", vm.selected_style_name())),
-                        ScrollViewer::new()
-                            .height(120.0)
-                            .vertical_scroll_bar_visibility(ScrollBarVisibility::Auto)
-                            .content(StackPanel::new().spacing(4.0).keyed_children(style_buttons)),
+                        TextBlock::new().text("キャラクター"),
+                        ComboBox::new()
+                            .items_source(character_names)
+                            .selected_index(character_index)
+                            .placeholder_text("キャラクターを選択")
+                            .horizontal_alignment(HorizontalAlignment::Stretch)
+                            .is_enabled(interactive)
+                            .on_selection_changed(context.callback(move |index: Option<usize>| {
+                                Message::CharacterSelected(index.and_then(|i| character_values.get(i).cloned()))
+                            })),
+                        TextBlock::new().text("スタイル"),
+                        ComboBox::new()
+                            .items_source(style_names)
+                            .selected_index(style_index)
+                            .placeholder_text("スタイルを選択")
+                            .horizontal_alignment(HorizontalAlignment::Stretch)
+                            .is_enabled(interactive)
+                            .on_selection_changed(context.callback(move |index: Option<usize>| {
+                                Message::StyleSelected(index.and_then(|i| style_ids.get(i).copied()))
+                            })),
                         TextBlock::new().text("速度"),
                         NumberBox::new()
                             .minimum(0.5)
@@ -159,14 +162,19 @@ impl Component for VoiceApp {
                             .value(Some(vm.speed))
                             .is_enabled(interactive)
                             .on_value_changed(context.callback(Message::SpeedChanged)),
-                        Button::new()
-                            .is_enabled(vm.can_speak())
-                            .on_click(context.message(Message::Speak))
-                            .content("読み上げ"),
-                        Button::new()
-                            .is_enabled(vm.can_save())
-                            .on_click(context.message(Message::Save))
-                            .content("WAV保存"),
+                        StackPanel::new()
+                            .orientation(Orientation::Horizontal)
+                            .spacing(8.0)
+                            .children((
+                                Button::new()
+                                    .is_enabled(vm.can_speak())
+                                    .on_click(context.message(Message::Speak))
+                                    .content("読み上げ"),
+                                Button::new()
+                                    .is_enabled(vm.can_save())
+                                    .on_click(context.message(Message::Save))
+                                    .content("WAV保存"),
+                            )),
                     )),
             );
         ScrollViewer::new()
