@@ -129,7 +129,6 @@ impl Component for VoiceApp {
                             .placeholder_text("ここに入力した文字を読み上げます")
                             .accepts_return(true)
                             .text_wrapping(TextWrapping::Wrap)
-                            .font_size(14.0)
                             .height(94.0)
                             .is_enabled(interactive)
                             .on_text_changed(context.callback(|value: String| {
