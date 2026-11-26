@@ -2,9 +2,9 @@
 
 ## 1. ダウンロード
 
-GitHub [Actions](https://github.com/zhuolabs/zundamon-voicevox-app/actions) の成功した Windows build and verification の実行結果を開き、Artifacts にある zundamon-voicevox-app-windows-x64 をダウンロードして ZIP をすべて展開します。GitHub へのログインが必要な場合があります。音声モデル・辞書・VOICEVOX ONNX Runtime は同梱しません。公式ダウンローダー download.exe は同梱します。EXE 単体ではなく、同梱されたランタイムファイルも同じ場所に残してください。
+GitHub [Actions](https://github.com/zhuolabs/zundamon-voicevox-app/actions) の成功した Windows build and verification の実行結果を開き、Artifacts にある zundamon-voicevox-app-windows-x64 をダウンロードして ZIP をすべて展開します。GitHub へのログインが必要な場合があります。音声モデル・辞書・VOICEVOX ONNX Runtime は同梱しません。公式ダウンローダー download.exe は同梱します。Framework-dependent 方式のため Windows App Runtime は同梱しません。
 
-Windows 11 x64 を推奨します。Rust や Visual Studio はアプリ利用時には不要です。MSVC ランタイム不足の場合は Microsoft 公式の Visual C++ 再頒布可能パッケージ x64 を導入してください: https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist
+Windows 11 x64 を推奨します。Rust や Visual Studio はアプリ利用時には不要です。起動できない場合は [README.md の「アプリが起動しない場合」](README.md) を参照してください。
 
 ## 2. モデルなどの取得（初回のみ）
 
@@ -27,7 +27,7 @@ zundamon-voicevox-app.exe を起動し、モデル読み込みが完了するま
 ## 4. トラブルシュート
 
 - モデルが見つからない: voicevox_core が EXE の隣にあることを確認し、セットアップを再実行してください。
-- DLL が見つからない: 配布 ZIP を丸ごと展開したこと、x64 Windows を使用していることを確認してください。
+- 起動できない、DLL が見つからない: x64 Windows を使用していることを確認し、README.md に記載の Microsoft 公式ランタイム入手方法を参照してください。
 - 音が出ない: Windows の出力デバイスと音量を確認してください。WAV 保存も試してください。
 - 不具合報告: Actions の実行 URL、Windows バージョン、表示されたエラー、操作手順を添えてください。
 

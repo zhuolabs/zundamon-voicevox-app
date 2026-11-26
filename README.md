@@ -2,7 +2,15 @@
 
 Windows Reactor 0.100.0 (WinUI 3)、VOICEVOX Core 0.17.1、rodio 0.20 を使用。元の ViewModel / Effect 構成を維持しています。テキスト入力、キャラクター・読み上げスタイル選択、速度変更、音声再生、WAV 保存に対応する設計です。
 
-Windows のデバッグ・リリースビルド、単体テスト6件および配布アーティファクト生成は CI #5 で成功しました。GUI の実機動作は未確認です。CI の結果は [Actions](https://github.com/zhuolabs/zundamon-voicevox-app/actions) から確認してください。
+従来の self-contained 版は CI #8 でデバッグ・リリースビルド、単体テスト6件、配布アーティファクト生成に成功しました。GUI の実機動作は未確認です。CI の結果は [Actions](https://github.com/zhuolabs/zundamon-voicevox-app/actions) から確認してください。
+
+## アプリが起動しない場合
+
+本アプリは Framework-dependent 方式です。Windows App Runtime の DLL・言語リソースは同梱せず、PC にインストール済みのランタイムを利用します。既に対応ランタイムがある場合は追加操作は不要です。
+
+起動できない場合は、Microsoft 公式の [Windows App SDK ダウンロード](https://learn.microsoft.com/ja-jp/windows/apps/windows-app-sdk/downloads) を開き、Windows App SDK 2.0 系（2.x、Stable）の Runtime downloads から x64 Installer（WindowsAppRuntimeInstall.exe）を取得して実行してください。その後アプリを再起動します。Windows App Runtime は .NET Desktop Runtime とは別のものです。
+
+MSVC ランタイム不足が報告された場合は [Visual C++ 再頒布可能パッケージ x64](https://learn.microsoft.com/ja-jp/cpp/windows/latest-supported-vc-redist) もインストールしてください。ランタイムの自動インストール処理はありません。
 
 ## Windows x64 での検証
 
@@ -16,7 +24,7 @@ powershell -ExecutionPolicy Bypass -File .\verify.ps1 -Launch
 
 ビルドと単体テストを実行します。アセットは自動取得しません。GUI を起動する前に `setup-assets.cmd` を実行し、利用規約に同意して必要なアセットを取得してください。`-Launch` 指定時は最後に GUI を起動します。
 
-GitHub Actions は push / pull request / 手動実行で Windows x64 のビルド、単体テスト、配布アーティファクト生成を実施します。公式ダウンローダー EXE を同梱しますが、CI では実行せず、音声モデル・辞書・VOICEVOX ONNX Runtime は一切取得・再配布しません。実音声合成は実機で確認します。
+GitHub Actions は push / pull request / 手動実行で Windows x64 のビルド、単体テスト、配布アーティファクト生成を実施します。Windows App Runtime は同梱しません。公式ダウンローダー EXE を同梱しますが、CI では実行せず、音声モデル・辞書・VOICEVOX ONNX Runtime は一切取得・再配布しません。実音声合成は実機で確認します。
 
 run の Artifacts にある zundamon-voicevox-app-windows-x64 が配布物です。初回 CI で生成した Cargo.lock は cargo-lock アーティファクトから取得して固定できます。
 

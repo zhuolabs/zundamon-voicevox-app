@@ -10,8 +10,5 @@ typed_floats = "1"
 rodio = "0.20"
 anyhow = "1"
 
-[build-dependencies]
-windows-reactor-setup = "=0.100.0"
-
 [dev-dependencies]
 tempfile = "3"

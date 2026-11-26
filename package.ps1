@@ -1,4 +1,4 @@
-# Run after successful Windows x64 release build. Do not bundle voice models.
+# Framework-dependent Windows x64 distribution. No WinUI runtime or voice models.
 $ErrorActionPreference = 'Stop'
 Push-Location $PSScriptRoot
 try {
@@ -8,12 +8,8 @@ try {
     if (-not (Test-Path -LiteralPath $Exe -PathType Leaf)) { throw "Missing executable: $Exe" }
     if (Test-Path -LiteralPath $Dist) { Remove-Item -LiteralPath $Dist -Recurse -Force }
     New-Item -ItemType Directory -Path $Dist | Out-Null
-    $excluded = @('build', 'deps', 'examples', 'incremental', '.fingerprint', 'output', 'voicevox_core', '.cargo-lock')
-    Get-ChildItem -LiteralPath $Release -Force | Where-Object {
-        $_.Name -notin $excluded -and ($_.PSIsContainer -or $_.Extension -notin @('.d', '.pdb', '.rlib', '.rmeta', '.lib', '.exp'))
-    } | ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination $Dist -Recurse -Force }
-    if (-not (Test-Path -LiteralPath (Join-Path $Dist 'zundamon-voicevox-app.exe'))) { throw 'Executable missing in package' }
-    if (-not (Get-ChildItem -LiteralPath $Dist -Filter '*.dll' -File)) { throw 'No staged runtime DLLs found' }
+    # Copy only our application. Old self-contained build files must never leak into dist.
+    Copy-Item -LiteralPath $Exe -Destination $Dist
     # Bundle only the official downloader executable, not any downloaded assets.
     $Downloader = Join-Path $Dist 'download.exe'
     Invoke-WebRequest -Uri 'https://github.com/VOICEVOX/voicevox_core/releases/download/0.17.1/download-windows-x64.exe' -OutFile $Downloader
@@ -26,6 +22,11 @@ try {
     }
     foreach ($name in @('USER_GUIDE.md', 'README.md', 'FIRST_RUN_TESTS.md', 'setup-assets.ps1', 'setup-assets.cmd', 'VOICEVOX-DOWNLOADER-LICENSE.txt')) {
         Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination $Dist
+    }
+    $expected = @('zundamon-voicevox-app.exe', 'download.exe', 'USER_GUIDE.md', 'README.md', 'FIRST_RUN_TESTS.md', 'setup-assets.ps1', 'setup-assets.cmd', 'VOICEVOX-DOWNLOADER-LICENSE.txt')
+    $actual = @(Get-ChildItem -LiteralPath $Dist -Force)
+    if ($actual.Count -ne $expected.Count -or @($actual | Where-Object { $_.PSIsContainer -or $_.Name -notin $expected }).Count -gt 0) {
+        throw 'Unexpected files in framework-dependent package'
     }
     $hashes = Get-ChildItem -LiteralPath $Dist -Recurse -File | Sort-Object FullName | ForEach-Object {
         $relative = $_.FullName.Substring($Dist.Length + 1).Replace('\','/')
